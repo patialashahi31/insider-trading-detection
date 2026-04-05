@@ -1,0 +1,111 @@
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #102a43; }
+      .subtitle { font: 500 15px Arial, sans-serif; fill: #486581; }
+      .label { font: 700 15px Arial, sans-serif; fill: #102a43; }
+      .text { font: 500 13px Arial, sans-serif; fill: #334e68; }
+      .small { font: 600 12px Arial, sans-serif; fill: #627d98; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#486581"/>
+    </marker>
+  </defs>
+
+  <rect width="1400" height="860" fill="#f8fbff"/>
+  <text x="60" y="60" class="title">Polymarket Insider Detection System Design</text>
+  <text x="60" y="88" class="subtitle">Goldsky + Etherscan ingestion, ClickHouse analytics, FastAPI query layer, Streamlit dashboard</text>
+
+  <rect x="60" y="130" width="250" height="150" rx="18" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/>
+  <text x="90" y="170" class="label">External Source</text>
+  <text x="90" y="205" class="text">Goldsky Polymarket</text>
+  <text x="90" y="227" class="text">Subgraph</text>
+  <text x="90" y="257" class="small">orderFilledEvents</text>
+
+  <rect x="60" y="340" width="250" height="150" rx="18" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <text x="90" y="380" class="label">External Source</text>
+  <text x="90" y="415" class="text">Etherscan Polygon API</text>
+  <text x="90" y="445" class="small">USDC.e transfer history</text>
+
+  <rect x="390" y="130" width="260" height="150" rx="18" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+  <text x="420" y="170" class="label">trade-ingestor</text>
+  <text x="420" y="205" class="text">Fetches Polymarket fill events</text>
+  <text x="420" y="227" class="text">Stores raw trades</text>
+  <text x="420" y="257" class="small">checkpoint-based resume</text>
+
+  <rect x="390" y="340" width="260" height="150" rx="18" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+  <text x="420" y="380" class="label">funding-ingestor</text>
+  <text x="420" y="415" class="text">Reads traded wallets</text>
+  <text x="420" y="437" class="text">Fetches earliest USDC.e funding</text>
+  <text x="420" y="467" class="small">wallet enrichment</text>
+
+  <rect x="730" y="90" width="300" height="470" rx="22" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"/>
+  <text x="760" y="130" class="label">ClickHouse</text>
+  <text x="760" y="155" class="small">raw + derived analytics tables</text>
+
+  <rect x="760" y="190" width="240" height="72" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="782" y="218" class="label">raw_order_filled_events</text>
+  <text x="782" y="242" class="small">maker, taker, size, asset ids, fee</text>
+
+  <rect x="760" y="280" width="240" height="60" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="782" y="307" class="label">trade_ingestion_checkpoints</text>
+  <text x="782" y="329" class="small">timestamp + event id cursor</text>
+
+  <rect x="760" y="358" width="240" height="60" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="782" y="385" class="label">raw_usdc_transfers</text>
+  <text x="782" y="407" class="small">wallet-centric earliest transfer rows</text>
+
+  <rect x="760" y="436" width="240" height="60" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="782" y="463" class="label">wallet_first_funding</text>
+  <text x="782" y="485" class="small">first observed USDC.e funding event</text>
+
+  <rect x="1060" y="130" width="260" height="150" rx="18" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="1090" y="170" class="label">feature-worker</text>
+  <text x="1090" y="205" class="text">Computes wallet behavior</text>
+  <text x="1090" y="227" class="text">features from trades + funding</text>
+  <text x="1090" y="257" class="small">trade count, concentration, volume</text>
+
+  <rect x="1060" y="340" width="260" height="150" rx="18" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="1090" y="380" class="label">scoring-worker</text>
+  <text x="1090" y="415" class="text">Turns features into</text>
+  <text x="1090" y="437" class="text">heuristic insider-risk scores</text>
+  <text x="1090" y="467" class="small">low / medium / high</text>
+
+  <rect x="760" y="590" width="240" height="60" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="782" y="617" class="label">wallet_features</text>
+  <text x="782" y="639" class="small">derived wallet signals</text>
+
+  <rect x="760" y="668" width="240" height="60" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="782" y="695" class="label">insider_scores</text>
+  <text x="782" y="717" class="small">score, risk_level, reasons</text>
+
+  <rect x="1060" y="590" width="260" height="138" rx="18" fill="#ecfeff" stroke="#06b6d4" stroke-width="2"/>
+  <text x="1090" y="626" class="label">dashboard-api</text>
+  <text x="1090" y="658" class="text">FastAPI query layer</text>
+  <text x="1090" y="680" class="small">/summary, /scores, /wallets/{wallet}</text>
+
+  <rect x="1060" y="748" width="260" height="72" rx="18" fill="#fefce8" stroke="#eab308" stroke-width="2"/>
+  <text x="1090" y="780" class="label">dashboard-frontend</text>
+  <text x="1090" y="804" class="small">Streamlit analyst dashboard</text>
+
+  <line x1="310" y1="205" x2="390" y2="205" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="310" y1="415" x2="390" y2="415" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="650" y1="205" x2="730" y2="226" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="650" y1="205" x2="730" y2="310" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="650" y1="415" x2="730" y2="388" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="650" y1="415" x2="730" y2="466" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <line x1="1000" y1="226" x2="1060" y2="205" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1000" y1="466" x2="1060" y2="205" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1190" y1="280" x2="880" y2="590" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <line x1="1000" y1="620" x2="1060" y2="415" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1190" y1="490" x2="880" y2="698" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <line x1="1000" y1="226" x2="1060" y2="636" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1000" y1="466" x2="1060" y2="650" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1000" y1="620" x2="1060" y2="664" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1000" y1="698" x2="1060" y2="678" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <line x1="1190" y1="728" x2="1190" y2="748" stroke="#486581" stroke-width="3" marker-end="url(#arrow)"/>
+</svg>

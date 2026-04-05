@@ -1,0 +1,130 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: insider-trading-clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: polymarket
+      CLICKHOUSE_USER: app
+      CLICKHOUSE_PASSWORD: app_password
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./infra/clickhouse/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  trade-ingestor:
+    build:
+      context: .
+      dockerfile: services/trade_ingestor/Dockerfile
+    container_name: insider-trading-trade-ingestor
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      POLYMARKET_SUBGRAPH_URL: https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/orderbook-subgraph/0.0.1/gn
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_DATABASE: polymarket
+      CLICKHOUSE_USER: app
+      CLICKHOUSE_PASSWORD: app_password
+      BATCH_SIZE: "100"
+      POLL_INTERVAL_SECONDS: "30"
+    restart: unless-stopped
+
+  funding-ingestor:
+    build:
+      context: .
+      dockerfile: services/funding_ingestor/Dockerfile
+    container_name: insider-trading-funding-ingestor
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_DATABASE: polymarket
+      CLICKHOUSE_USER: app
+      CLICKHOUSE_PASSWORD: app_password
+      ETHERSCAN_BASE_URL: https://api.etherscan.io/v2/api
+      ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY}
+      POLYGON_CHAIN_ID: "137"
+      USDC_E_CONTRACT: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174
+      WALLET_BATCH_SIZE: "25"
+      POLL_INTERVAL_SECONDS: "60"
+    restart: unless-stopped
+
+  feature-worker:
+    build:
+      context: .
+      dockerfile: services/feature_worker/Dockerfile
+    container_name: insider-trading-feature-worker
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_DATABASE: polymarket
+      CLICKHOUSE_USER: app
+      CLICKHOUSE_PASSWORD: app_password
+      POLL_INTERVAL_SECONDS: "120"
+    restart: unless-stopped
+
+  scoring-worker:
+    build:
+      context: .
+      dockerfile: services/scoring_worker/Dockerfile
+    container_name: insider-trading-scoring-worker
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_DATABASE: polymarket
+      CLICKHOUSE_USER: app
+      CLICKHOUSE_PASSWORD: app_password
+      POLL_INTERVAL_SECONDS: "120"
+    restart: unless-stopped
+
+  dashboard-api:
+    build:
+      context: .
+      dockerfile: services/dashboard_api/Dockerfile
+    container_name: insider-trading-dashboard-api
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_DATABASE: polymarket
+      CLICKHOUSE_USER: app
+      CLICKHOUSE_PASSWORD: app_password
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  dashboard-frontend:
+    build:
+      context: .
+      dockerfile: services/dashboard_frontend/Dockerfile
+    container_name: insider-trading-dashboard-frontend
+    depends_on:
+      dashboard-api:
+        condition: service_started
+    environment:
+      DASHBOARD_API_URL: http://dashboard-api:8000
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+
+volumes:
+  clickhouse-data:
